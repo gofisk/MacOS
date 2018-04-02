@@ -1,0 +1,75 @@
+#!/bin/bash
+#Manual Account Backup for MacOS High Sierra
+#Written by Scott Fisk -- fisk@iastate.edu 
+
+RED='\e[31m'
+GREEN='\e[32m'
+NC='\033[0m'
+
+clear
+printf "Here is a list of users on this machine:\n\n"
+dscl . list /Users | grep -v '^_' | grep -v 'daemon' | grep -v 'caspermgr' | grep -v 'root' | grep -v 'nobody' | grep -v 'engllocaladmin'
+printf "\nType the username that you wish to target: "
+read target
+clear
+
+printf "${RED}Do you want to backup or restore the data for $target?${NC}"
+printf "\n\nType an option to continue."
+printf "\nBackup (b) or Restore (r): "
+read selection
+clear
+
+if [ $selection == 'b' ]
+then
+    USER=$target
+    printf "Net-ID: ${GREEN}$USER${NC}\n"
+
+    SOURCE=/Users/$USER
+    DEST=/Volumes/ENGL\ Boot/backups
+
+    printf "Source: ${GREEN}$SOURCE${NC}\n"
+    printf "Destination: ${GREEN}$DEST${NC}\n"
+    
+    printf "=======================================\n"
+    printf "Confirm backup using settings above? (y/n): "
+    read confirm
+    clear
+    
+    if [ $confirm == 'y' ] || [ $confirm == 'Y' ]
+    then
+        sudo rsync -aqhP --exclude="*.bak" --progress "$SOURCE" "$DEST"
+        printf "${GREEN}\n==============================\n"
+        printf "Backup completed successfully.\n"
+        printf "==============================${NC}\n"
+    else
+        printf "${RED}Backup has been aborted by user. Exiting script.${NC}\n"
+        exit 1
+    fi
+elif [ $selection == 'r' ]
+then
+    USER=$target
+    echo "Net-ID: $USER"
+
+    SOURCE=/Volumes/ENGL\ Boot/backups/$USER
+    DEST=/Users
+
+    echo "Source: $SOURCE"
+    echo "Destination: $DEST"
+    
+    printf "================================\n"
+    printf "Confirm restore using settings above? (y/n): "
+    read confirm
+    clear
+    
+    if [ $confirm == 'y' ] || [ $confirm == 'Y' ]
+    then
+        sudo rsync -aqhP --exclude="*.bak" --progress --ignore-existing "$SOURCE" "$DEST"
+    else
+        printf "${RED}Restore has been aborted by user. Exiting script.${NC}\n"
+        exit 1
+    fi
+    exit 1
+else
+    printf "Not a valid option. Exiting script.\n"
+    exit 1
+fi

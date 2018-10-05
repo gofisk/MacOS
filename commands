@@ -1,0 +1,5 @@
+## Get FileVault status for user
+sysadminctl -secureTokenStatus username 
+
+## Enable secure token for user
+sysadminctl -secureTokenOn username -password password
